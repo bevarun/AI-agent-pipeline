@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/outbound_record.schema.json",
+  "title": "CMS Outbound Record v1.0",
+  "description": "Contract between the agent pipeline and the downstream CMS/CRM. raw_payload is deliberately excluded (data minimisation).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_id", "source", "contact", "classification", "action", "message", "rationale", "agent_meta"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "record_id": {"type": "string", "minLength": 1},
+    "source": {"enum": ["linkedin_csv", "fhir_emr"]},
+    "profile": {
+      "type": "object",
+      "description": "Optional display-only summary. Never contains clinical details.",
+      "additionalProperties": false,
+      "properties": {
+        "headline": {"type": ["string", "null"]},
+        "organization": {"type": ["string", "null"]},
+        "location": {"type": ["string", "null"]}
+      }
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "email": {"type": ["string", "null"]},
+        "phone": {"type": ["string", "null"]},
+        "linkedin_url": {"type": ["string", "null"]}
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "score", "confidence"],
+      "properties": {
+        "category": {"enum": ["hot", "warm", "cold", "urgent", "routine", "low"]},
+        "score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "confidence": {"enum": ["low", "medium", "high"]}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel", "tone", "escalate"],
+      "properties": {
+        "channel": {"enum": ["email", "linkedin", "phone", "sms", "portal", "none"]},
+        "tone": {"enum": ["professional", "warm", "empathetic", "urgent", "casual"]},
+        "escalate": {"type": "boolean"},
+        "flag_reason": {"type": ["string", "null"]}
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "body"],
+      "properties": {
+        "subject": {"type": "string"},
+        "body": {"type": "string", "minLength": 1, "maxLength": 1500}
+      }
+    },
+    "rationale": {"type": "string", "minLength": 10, "maxLength": 1200},
+    "agent_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["llm_used", "model", "steps", "latency_ms", "processed_at"],
+      "properties": {
+        "llm_used": {"type": "boolean"},
+        "model": {"type": "string"},
+        "steps": {"type": "integer", "minimum": 1},
+        "latency_ms": {"type": "integer", "minimum": 0},
+        "processed_at": {"type": "string"}
+      }
+    }
+  }
+}
